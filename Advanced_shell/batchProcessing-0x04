@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# List of Pokémon
+POKEMON_LIST=("bulbasaur" "ivysaur" "venusaur" "charmander" "charmeleon")
+
+# Function to fetch Pokémon data
+fetch_pokemon() {
+    local pokemon=$1
+    echo "Fetching data for $pokemon..."
+
+    STATUS_CODE=$(curl -s -o "${pokemon}.json" -w "%{http_code}" "https://pokeapi.co/api/v2/pokemon/$pokemon")
+
+    if [ "$STATUS_CODE" -eq 200 ]; then
+        echo "Saved data to ${pokemon}.json"
+    else
+        echo "Failed to fetch data for $pokemon (HTTP $STATUS_CODE)" >> errors.txt
+        rm -f "${pokemon}.json"
+    fi
+}
+
+# Start all fetches in parallel
+for pokemon in "${POKEMON_LIST[@]}"; do
+    fetch_pokemon "$pokemon" &
+done
+
+# Wait for all background jobs to finish
+wait
+
+echo "All Pokémon data fetched!"
+
