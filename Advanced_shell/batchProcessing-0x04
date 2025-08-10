@@ -2,6 +2,7 @@
 
 # List of Pokémon
 POKEMON_LIST=("bulbasaur" "ivysaur" "venusaur" "charmander" "charmeleon")
+PIDS=()
 
 # Function to fetch Pokémon data
 fetch_pokemon() {
@@ -18,13 +19,18 @@ fetch_pokemon() {
     fi
 }
 
-# Start all fetches in parallel
+# Start all fetches in parallel and store PIDs
 for pokemon in "${POKEMON_LIST[@]}"; do
     fetch_pokemon "$pokemon" &
+    PIDS+=($!)
 done
 
-# Wait for all background jobs to finish
-wait
+# Wait for all processes, killing any that hang too long
+for pid in "${PIDS[@]}"; do
+    wait "$pid" || {
+        echo "Process $pid failed, killing..."
+        kill "$pid" 2>/dev/null
+    }
+done
 
 echo "All Pokémon data fetched!"
-
