@@ -1,0 +1,22 @@
+#!/bin/bash
+
+# List of Pokémon to fetch
+POKEMON_LIST=("bulbasaur" "ivysaur" "venusaur" "charmander" "charmeleon")
+
+# Loop through each Pokémon
+for pokemon in "${POKEMON_LIST[@]}"; do
+    echo "Fetching data for $pokemon..."
+    
+    # Fetch data and check status
+    STATUS_CODE=$(curl -s -o "${pokemon}.json" -w "%{http_code}" "https://pokeapi.co/api/v2/pokemon/$pokemon")
+    
+    if [ "$STATUS_CODE" -eq 200 ]; then
+        echo "Saved data to ${pokemon}.json"
+    else
+        echo "Failed to fetch data for $pokemon (HTTP $STATUS_CODE)" >> errors.txt
+        rm -f "${pokemon}.json"  # remove partial file if failed
+    fi
+    
+    # Delay to prevent hitting API rate limit
+    sleep 2
+done
